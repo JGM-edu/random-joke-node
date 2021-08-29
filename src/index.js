@@ -43,7 +43,7 @@ const onRequest = (request, response) => {
 	const parsedUrl = url.parse(request.url);
 	const pathname = parsedUrl.pathname;
 	
-	if (pathname == "/random-number") {
+	if (pathname == "/random-joke") {
 		response.writeHead(200, { 'Content-Type': "application/json"}); // send response headers
 		response.write(getRandomJokeJSON()); // send content
 		response.end(); // close connection
