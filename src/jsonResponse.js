@@ -17,9 +17,29 @@ const jokes = [
 	{ q: "What do you get when you cross a snowman with a vampire?",		a: "Frostbite" },
 ];
 
-const getRandomJokeJSON = () => {
-	const i = Math.floor(Math.random() * jokes.length);
-	return JSON.stringify(jokes[i]);
+const getRandomJokeJSON = (limit = 1) => {
+	let limit2 = Number(limit);
+	limit2 = (!limit2 || limit2 < 1 || limit2 >= jokes.length) ? 1 : limit2;
+	limit2 = Math.floor(limit2);
+	limit2 = (limit2 < 1) ? 1 : limit2;
+	const generatedIndicies = [];
+	for (let loop = 0; loop < limit2; loop++) {
+		let curr;
+		do {
+			curr = Math.floor(Math.random() * jokes.length);
+		} while (generatedIndicies.indexOf(curr) >= 0);
+		generatedIndicies.push(curr);
+	}
+	const i = generatedIndicies.map((val) => jokes[val]);
+	return JSON.stringify(i);
+	// const i = Math.floor(Math.random() * jokes.length);
+	// return JSON.stringify(jokes[i]);
+};
+
+const getRandomJokesResponse = (request, response, params) => {
+	response.writeHead(200, { "Content-Type": "application/json" }); // send response headers
+	response.write(getRandomJokeJSON(params.limit)); // send content
+	response.end(); // close connection
 };
 
 const getRandomJokeResponse = (request, response) => {
@@ -28,4 +48,5 @@ const getRandomJokeResponse = (request, response) => {
 	response.end(); // close connection
 };
 
-module.exports.getRandomJokeResponse = getRandomJokeResponse;
+module.exports.getRandomJokeResponse	= getRandomJokeResponse;
+module.exports.getRandomJokesResponse	= getRandomJokesResponse;
