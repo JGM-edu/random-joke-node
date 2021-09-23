@@ -20,8 +20,11 @@ const onRequest = (request, response) => {
 
 	const params = querystring.parse(parsedUrl.query);
 
+	let acceptedTypes = request.headers.accept && request.headers.accept.split(",");
+	acceptedTypes = acceptedTypes || [];
+
 	if (urlStruct[pathname]) {
-		urlStruct[pathname](request, response, params);
+		urlStruct[pathname](request, response, acceptedTypes, params);
 	}
 	else {
 		urlStruct.notFound(request, response);

@@ -1,3 +1,9 @@
+const jsdom = require("jsdom");
+
+const { JSDOM } = jsdom;
+
+global.document = new JSDOM("<!DOCTYPE html><p>Hello world</p>").window.document;
+
 const jokes = [
 	{ q: "What do you call a very small valentine?",						a: "A valen-tiny!" },
 	{ q: "What did the dog say when he rubbed his tail on the sandpaper?",	a: "Ruff, Ruff!" },
@@ -16,12 +22,15 @@ const jokes = [
 	{ q: "What did the ocean say to the sailboat?",							a: "Nothing, it just waved." },
 	{ q: "What do you get when you cross a snowman with a vampire?",		a: "Frostbite" },
 ];
-
-const getRandomJokeJSON = (limit = 1) => {
+/* global document */
+const getRandomJokes = (acceptedTypes, limit = 1) => {
+	// #region Sanitize input
 	let limit2 = Number(limit);
 	limit2 = (!limit2 || limit2 < 1 || limit2 >= jokes.length) ? 1 : limit2;
 	limit2 = Math.floor(limit2);
 	limit2 = (limit2 < 1) ? 1 : limit2;
+	// #endregion
+	// #region Get Joke(s)
 	const generatedIndicies = [];
 	for (let loop = 0; loop < limit2; loop++) {
 		let curr;
@@ -30,21 +39,85 @@ const getRandomJokeJSON = (limit = 1) => {
 		} while (generatedIndicies.indexOf(curr) >= 0);
 		generatedIndicies.push(curr);
 	}
-	const i = generatedIndicies.map((val) => jokes[val]);
-	return JSON.stringify(i);
-	// const i = Math.floor(Math.random() * jokes.length);
-	// return JSON.stringify(jokes[i]);
+	let thing = generatedIndicies.map((val) => jokes[val]);
+	if (thing.length === 1) [thing] = thing;
+	// #endregion
+	if (acceptedTypes === "application/json" || acceptedTypes.indexOf("application/json") >= 0) {
+		return JSON.stringify(thing);
+	}
+	if (acceptedTypes === "text/xml" || acceptedTypes.indexOf("text/xml") >= 0) {
+		let root;
+		if (thing.length) {
+			root = document.createElement("jokes");
+			thing.forEach((elem) => {
+				const newElem = document.createElement("joke");
+				const newQ	= document.createElement("q");
+				const newA	= document.createElement("a");
+				newQ.innerHTML = elem.q;
+				newElem.appendChild(newQ);
+				newA.innerHTML = elem.a;
+				newElem.appendChild(newA);
+				root.appendChild(newElem);
+			});
+		}
+		else {
+			root = document.createElement("joke");
+			const newQ	= document.createElement("q");
+			const newA	= document.createElement("a");
+			newQ.innerHTML = thing.q;
+			root.appendChild(newQ);
+			newA.innerHTML = thing.a;
+			root.appendChild(newA);
+		}
+		return `<?xml version="1.0" ?>
+		${root.outerHTML}`;
+	}
+
+	return JSON.stringify(thing);
 };
 
-const getRandomJokesResponse = (request, response, params) => {
-	response.writeHead(200, { "Content-Type": "application/json" }); // send response headers
-	response.write(getRandomJokeJSON(params.limit)); // send content
+// const getRandomJokeJSON = (limit = 1) => {
+// 	return JSON.stringify(getRandomJokes(limit));
+// };
+
+// const getRandomJokeXML = (limit = 1) => {
+// 	let thing = getRandomJokes(limit);
+// 	/***
+// 	 * @type {HTMLElement}
+// 	 */
+// 	let root;
+// 	if (thing.length) {
+// 		root = document.createElement('jokes');
+// 		thing.forEach((elem) => {
+// 			let newElem = document.createElement('joke'),
+// 				newQ	= document.createElement('q'),
+// 				newA	= document.createElement('a');
+// 			newQ.innerText = elem.q;
+// 			newA.innerText = elem.a;
+// 			root.appendChild(newElem.appendChild(newQ).appendChild(newA));
+// 		});
+// 	}
+// 	else {
+// 		root = document.createElement('joke');
+// 		let newQ	= document.createElement('q'),
+// 			newA	= document.createElement('a');
+// 		newQ.innerText = elem.q;
+// 		newA.innerText = elem.a;
+// 		root.appendChild(newQ).appendChild(newA);
+// 	}
+// 	let x = new XMLSerializer();
+// 	return x.serializeToString(root);
+// };
+
+const getRandomJokesResponse = (request, response, acceptedTypes, params) => {
+	response.writeHead(200, { "Content-Type": (acceptedTypes === "application/json" || acceptedTypes.indexOf("application/json") >= 0) ? "application/json" : "text/xml" }); // send response headers
+	response.write(getRandomJokes(acceptedTypes, params.limit)); // send content
 	response.end(); // close connection
 };
 
-const getRandomJokeResponse = (request, response) => {
-	response.writeHead(200, { "Content-Type": "application/json" }); // send response headers
-	response.write(getRandomJokeJSON()); // send content
+const getRandomJokeResponse = (request, response, acceptedTypes) => {
+	response.writeHead(200, { "Content-Type": (acceptedTypes === "application/json" || acceptedTypes.indexOf("application/json") >= 0) ? "application/json" : "text/xml" }); // send response headers
+	response.write(getRandomJokes(acceptedTypes)); // send content
 	response.end(); // close connection
 };
 
