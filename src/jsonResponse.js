@@ -2,6 +2,7 @@ const jsdom = require("jsdom");
 
 const { JSDOM } = jsdom;
 
+/* global document */
 global.document = new JSDOM("<!DOCTYPE html><p>Hello world</p>").window.document;
 
 const jokes = [
@@ -22,7 +23,6 @@ const jokes = [
 	{ q: "What did the ocean say to the sailboat?",							a: "Nothing, it just waved." },
 	{ q: "What do you get when you cross a snowman with a vampire?",		a: "Frostbite" },
 ];
-/* global document */
 const getRandomJokes = (acceptedTypes, limit = 1) => {
 	// #region Sanitize input
 	let limit2 = Number(limit);
@@ -30,6 +30,7 @@ const getRandomJokes = (acceptedTypes, limit = 1) => {
 	limit2 = Math.floor(limit2);
 	limit2 = (limit2 < 1) ? 1 : limit2;
 	// #endregion
+
 	// #region Get Joke(s)
 	const generatedIndicies = [];
 	for (let loop = 0; loop < limit2; loop++) {
@@ -42,11 +43,13 @@ const getRandomJokes = (acceptedTypes, limit = 1) => {
 	let thing = generatedIndicies.map((val) => jokes[val]);
 	if (thing.length === 1) [thing] = thing;
 	// #endregion
-	if (acceptedTypes === "application/json" || acceptedTypes.indexOf("application/json") >= 0) {
-		return JSON.stringify(thing);
+
+	// #region Generate Response
+	let root;
+	if (acceptedTypes.indexOf("application/json") >= 0 || acceptedTypes.indexOf("text/xml") < 0) {
+		root = JSON.stringify(thing);
 	}
-	if (acceptedTypes === "text/xml" || acceptedTypes.indexOf("text/xml") >= 0) {
-		let root;
+	else if (acceptedTypes.indexOf("text/xml") >= 0) {
 		if (thing.length) {
 			root = document.createElement("jokes");
 			thing.forEach((elem) => {
@@ -69,11 +72,12 @@ const getRandomJokes = (acceptedTypes, limit = 1) => {
 			newA.innerHTML = thing.a;
 			root.appendChild(newA);
 		}
-		return `<?xml version="1.0" ?>
+		root = `<?xml version="1.0" ?>
 		${root.outerHTML}`;
 	}
+	// #endregion
 
-	return JSON.stringify(thing);
+	return root;
 };
 
 // const getRandomJokeJSON = (limit = 1) => {
@@ -110,13 +114,13 @@ const getRandomJokes = (acceptedTypes, limit = 1) => {
 // };
 
 const getRandomJokesResponse = (request, response, acceptedTypes, params) => {
-	response.writeHead(200, { "Content-Type": (acceptedTypes === "application/json" || acceptedTypes.indexOf("application/json") >= 0) ? "application/json" : "text/xml" }); // send response headers
+	response.writeHead(200, { "Content-Type": (acceptedTypes.indexOf("text/xml") >= 0 && acceptedTypes.indexOf("application/json") < 0) ? "text/xml" : "application/json" }); // send response headers
 	response.write(getRandomJokes(acceptedTypes, params.limit)); // send content
 	response.end(); // close connection
 };
 
 const getRandomJokeResponse = (request, response, acceptedTypes) => {
-	response.writeHead(200, { "Content-Type": (acceptedTypes === "application/json" || acceptedTypes.indexOf("application/json") >= 0) ? "application/json" : "text/xml" }); // send response headers
+	response.writeHead(200, { "Content-Type": (acceptedTypes.indexOf("text/xml") >= 0 && acceptedTypes.indexOf("application/json") < 0) ? "text/xml" : "application/json" }); // send response headers
 	response.write(getRandomJokes(acceptedTypes)); // send content
 	response.end(); // close connection
 };

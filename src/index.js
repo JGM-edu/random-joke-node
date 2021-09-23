@@ -19,9 +19,12 @@ const onRequest = (request, response) => {
 	const { pathname } = parsedUrl;
 
 	const params = querystring.parse(parsedUrl.query);
-
+	/**
+	 * @type {String[]}
+	 */
 	let acceptedTypes = request.headers.accept && request.headers.accept.split(",");
 	acceptedTypes = acceptedTypes || [];
+	acceptedTypes = acceptedTypes.map((e) => e.trim());
 
 	if (urlStruct[pathname]) {
 		urlStruct[pathname](request, response, acceptedTypes, params);
