@@ -23,6 +23,12 @@ const jokes = [
 	{ q: "What did the ocean say to the sailboat?",							a: "Nothing, it just waved." },
 	{ q: "What do you get when you cross a snowman with a vampire?",		a: "Frostbite" },
 ];
+
+// ALWAYS GIVE CREDIT - in your code comments and documentation
+// Source: https://stackoverflow.com/questions/2219526/how-many-bytes-in-a-javascript-string/29955838
+// Refactored to an arrow function by ACJ
+const getBinarySize = (string) => Buffer.byteLength(string, "utf8");
+
 const getRandomJokes = (acceptedTypes, limit = 1) => {
 	// #region Sanitize input
 	let limit2 = Number(limit);
@@ -113,15 +119,30 @@ const getRandomJokes = (acceptedTypes, limit = 1) => {
 // 	return x.serializeToString(root);
 // };
 
+/**
+ *
+ * @param {Request} request
+ * @param {Response} response
+ * @param {*} acceptedTypes
+ * @param {*} params
+ */
 const getRandomJokesResponse = (request, response, acceptedTypes, params) => {
-	response.writeHead(200, { "Content-Type": (acceptedTypes.indexOf("text/xml") >= 0 && acceptedTypes.indexOf("application/json") < 0) ? "text/xml" : "application/json" }); // send response headers
-	response.write(getRandomJokes(acceptedTypes, params.limit)); // send content
+	if (request.method === "HEAD" || request.method === "head") response.writeHead(200, { "Content-Type": (acceptedTypes.indexOf("text/xml") >= 0 && acceptedTypes.indexOf("application/json") < 0) ? "text/xml" : "application/json", "Content-Length": getBinarySize(getRandomJokes(acceptedTypes, params.limit)) }); // send response headers
+	else {
+		response.writeHead(200, { "Content-Type": (acceptedTypes.indexOf("text/xml") >= 0 && acceptedTypes.indexOf("application/json") < 0) ? "text/xml" : "application/json" }); // send response headers
+		response.write(getRandomJokes(acceptedTypes, params.limit)); // send content
+	}
 	response.end(); // close connection
 };
 
 const getRandomJokeResponse = (request, response, acceptedTypes) => {
-	response.writeHead(200, { "Content-Type": (acceptedTypes.indexOf("text/xml") >= 0 && acceptedTypes.indexOf("application/json") < 0) ? "text/xml" : "application/json" }); // send response headers
-	response.write(getRandomJokes(acceptedTypes)); // send content
+	if (request.method === "HEAD" || request.method === "head") {
+		response.writeHead(200, { "Content-Type": (acceptedTypes.indexOf("text/xml") >= 0 && acceptedTypes.indexOf("application/json") < 0) ? "text/xml" : "application/json", "Content-Length": getBinarySize(getRandomJokes(acceptedTypes)) }); // send response headers
+	}
+	else {
+		response.writeHead(200, { "Content-Type": (acceptedTypes.indexOf("text/xml") >= 0 && acceptedTypes.indexOf("application/json") < 0) ? "text/xml" : "application/json" }); // send response headers
+		response.write(getRandomJokes(acceptedTypes)); // send content
+	}
 	response.end(); // close connection
 };
 

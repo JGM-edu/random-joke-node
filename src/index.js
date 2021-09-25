@@ -8,6 +8,8 @@ const port = process.env.PORT || process.env.NODE_PORT || 3000;
 
 const urlStruct = {
 	notFound: htmlHandler.get404Response,
+	"/default-styles": htmlHandler.getDefaultStylesResponse,
+	"/default-styles.css": htmlHandler.getDefaultStylesResponse,
 	"/random-joke": jsonHandler.getRandomJokeResponse,
 	"/random-jokes": jsonHandler.getRandomJokesResponse,
 };
