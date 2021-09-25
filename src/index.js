@@ -10,6 +10,7 @@ const urlStruct = {
 	notFound: htmlHandler.get404Response,
 	"/default-styles": htmlHandler.getDefaultStylesResponse,
 	"/default-styles.css": htmlHandler.getDefaultStylesResponse,
+	"/joke-client": htmlHandler.getJokeClientResponse,
 	"/random-joke": jsonHandler.getRandomJokeResponse,
 	"/random-jokes": jsonHandler.getRandomJokesResponse,
 };

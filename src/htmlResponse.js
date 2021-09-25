@@ -2,6 +2,7 @@ const fs = require("fs");
 
 const defaultStyles = fs.readFileSync(`${__dirname}/../client/default-styles.css`);
 const errorPage = fs.readFileSync(`${__dirname}/../client/error.html`);
+const jokeClientPage = fs.readFileSync(`${__dirname}/../client/joke-client.html`);
 
 const getDefaultStylesResponse = (request, response) => {
 	response.writeHead(200, { "Content-Type": "text/css" }); // send response headers
@@ -15,5 +16,12 @@ const get404Response = (request, response) => {
 	response.end(); // close connection
 };
 
+const getJokeClientResponse = (request, response) => {
+	response.writeHead(200, { "Content-Type": "text/html" }); // send response headers
+	response.write(jokeClientPage); // send content
+	response.end(); // close connection
+};
+
 module.exports.getDefaultStylesResponse	= getDefaultStylesResponse;
 module.exports.get404Response			= get404Response;
+module.exports.getJokeClientResponse	= getJokeClientResponse;
